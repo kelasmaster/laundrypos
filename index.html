@@ -52,6 +52,27 @@
     .hidden {
       display: none;
     }
+    .product-row {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      position: relative;
+    }
+    .product-row button.remove {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .product-row button.remove:hover {
+      background-color: darkred;
+    }
   </style>
 </head>
 <body>
@@ -71,26 +92,11 @@
 
     <!-- Product Selection Section -->
     <div class="product-selection">
-      <h3>Select Product</h3>
-      <label for="category">Category:</label>
-      <select id="category" onchange="handleCategoryChange()">
-        <option value="">--Select Category--</option>
-        <option value="kiloan">Laundry Kiloan</option>
-        <option value="satuan">Laundry Satuan</option>
-      </select>
-
-      <div id="subcategories" class="hidden">
-        <!-- Subcategories will be dynamically populated here -->
+      <h3>Add Products</h3>
+      <div id="product-list">
+        <!-- Product rows will be dynamically added here -->
       </div>
-
-      <label for="quantity">Quantity:</label>
-      <input type="number" id="quantity" min="1" value="1">
-
-      <label for="date">Date:</label>
-      <input type="date" id="date">
-
-      <label for="invoice">Invoice Number:</label>
-      <input type="text" id="invoice" readonly>
+      <button onclick="addProductRow()">Add Product</button>
     </div>
 
     <!-- Discount and Down Payment Section -->
@@ -109,7 +115,8 @@
       <p><strong>Customer Name:</strong> <span id="summary-name"></span></p>
       <p><strong>Address:</strong> <span id="summary-address"></span></p>
       <p><strong>Phone:</strong> <span id="summary-phone"></span></p>
-      <p><strong>Products:</strong> <span id="summary-products"></span></p>
+      <p><strong>Products:</strong></p>
+      <ul id="summary-products"></ul>
       <p><strong>Date:</strong> <span id="summary-date"></span></p>
       <p><strong>Invoice:</strong> <span id="summary-invoice"></span></p>
       <p><strong>Total Price:</strong> Rp <span id="summary-total"></span></p>
@@ -125,16 +132,47 @@
   </div>
 
   <script>
-    function handleCategoryChange() {
-      const category = document.getElementById('category').value;
-      const subcategoriesDiv = document.getElementById('subcategories');
+    let productIndex = 0;
+
+    function addProductRow() {
+      const productList = document.getElementById('product-list');
+      const index = productIndex++;
+
+      const productRow = document.createElement('div');
+      productRow.classList.add('product-row');
+      productRow.innerHTML = `
+        <button class="remove" onclick="removeProductRow(${index})">Remove</button>
+        <label for="category-${index}">Category:</label>
+        <select id="category-${index}" onchange="handleCategoryChange(${index})">
+          <option value="">--Select Category--</option>
+          <option value="kiloan">Laundry Kiloan</option>
+          <option value="satuan">Laundry Satuan</option>
+        </select>
+
+        <div id="subcategories-${index}" class="hidden">
+          <!-- Subcategories will be dynamically populated here -->
+        </div>
+
+        <label for="quantity-${index}">Quantity:</label>
+        <input type="number" id="quantity-${index}" min="1" value="1">
+
+        <label for="date-${index}">Date:</label>
+        <input type="date" id="date-${index}">
+      `;
+
+      productList.appendChild(productRow);
+    }
+
+    function handleCategoryChange(index) {
+      const category = document.getElementById(`category-${index}`).value;
+      const subcategoriesDiv = document.getElementById(`subcategories-${index}`);
       subcategoriesDiv.innerHTML = '';
       subcategoriesDiv.classList.remove('hidden');
 
       if (category === 'kiloan') {
         subcategoriesDiv.innerHTML = `
-          <label for="subcategory">Subcategory:</label>
-          <select id="subcategory">
+          <label for="subcategory-${index}">Subcategory:</label>
+          <select id="subcategory-${index}">
             <option value="reguler">Laundry Reguler (Rp 7,000/kg)</option>
             <option value="ekspres">Laundry Ekspres (Rp 10,000/kg)</option>
             <option value="kilat">Laundry Kilat (Rp 12,000/kg)</option>
@@ -142,8 +180,8 @@
         `;
       } else if (category === 'satuan') {
         subcategoriesDiv.innerHTML = `
-          <label for="subcategory">Subcategory:</label>
-          <select id="subcategory">
+          <label for="subcategory-${index}">Subcategory:</label>
+          <select id="subcategory-${index}">
             <option value="karpet">Laundry Karpet</option>
             <option value="bedcover">Laundry Bedcover</option>
             <option value="boneka">Laundry Boneka</option>
@@ -156,53 +194,84 @@
       }
     }
 
+    function removeProductRow(index) {
+      const productList = document.getElementById('product-list');
+      const rowToRemove = document.querySelector(`#product-list > div:nth-child(${index + 1})`);
+      productList.removeChild(rowToRemove);
+    }
+
     function calculateSummary() {
       const name = document.getElementById('name').value;
       const address = document.getElementById('address').value;
       const phone = document.getElementById('phone').value;
-      const category = document.getElementById('category').value;
-      const subcategory = document.getElementById('subcategory')?.value;
-      const quantity = parseFloat(document.getElementById('quantity').value);
-      const date = document.getElementById('date').value;
-      const invoice = generateInvoice();
       const discount = parseFloat(document.getElementById('discount').value);
       const downPayment = parseFloat(document.getElementById('down-payment').value);
 
-      let price = 0;
-      if (category === 'kiloan') {
-        switch (subcategory) {
-          case 'reguler': price = 7000; break;
-          case 'ekspres': price = 10000; break;
-          case 'kilat': price = 12000; break;
+      const productList = document.getElementById('product-list').children;
+      const products = [];
+
+      let totalPrice = 0;
+
+      for (let i = 0; i < productList.length; i++) {
+        const category = productList[i].querySelector('[id^="category"]').value;
+        const subcategory = productList[i].querySelector('[id^="subcategory"]')?.value;
+        const quantity = parseFloat(productList[i].querySelector('[id^="quantity"]').value);
+        const date = productList[i].querySelector('[id^="date"]').value;
+
+        let price = 0;
+        if (category === 'kiloan') {
+          switch (subcategory) {
+            case 'reguler': price = 7000; break;
+            case 'ekspres': price = 10000; break;
+            case 'kilat': price = 12000; break;
+          }
+        } else if (category === 'satuan') {
+          switch (subcategory) {
+            case 'karpet': price = 15000; break;
+            case 'bedcover': price = 30000; break;
+            case 'boneka': price = 10000; break;
+            case 'dasi': price = 8000; break;
+            case 'kemeja': price = 14500; break;
+            case 'handuk': price = 10000; break;
+            case 'bantal': price = 25000; break;
+          }
         }
-      } else if (category === 'satuan') {
-        switch (subcategory) {
-          case 'karpet': price = 15000; break; // Default price for medium karpet
-          case 'bedcover': price = 30000; break; // Default price for medium bedcover
-          case 'boneka': price = 10000; break; // Default price for small boneka
-          case 'dasi': price = 8000; break;
-          case 'kemeja': price = 14500; break;
-          case 'handuk': price = 10000; break;
-          case 'bantal': price = 25000; break;
-        }
+
+        const productTotal = price * quantity;
+        totalPrice += productTotal;
+
+        products.push({
+          category,
+          subcategory,
+          quantity,
+          date,
+          price: productTotal
+        });
       }
 
-      const totalPrice = price * quantity;
       const discountedPrice = totalPrice - (totalPrice * (discount / 100));
       const finalAmount = discountedPrice - downPayment;
 
+      // Populate Summary
       document.getElementById('summary-name').innerText = name;
       document.getElementById('summary-address').innerText = address;
       document.getElementById('summary-phone').innerText = phone;
-      document.getElementById('summary-products').innerText = `${subcategory} (${quantity})`;
-      document.getElementById('summary-date').innerText = date;
-      document.getElementById('summary-invoice').innerText = invoice;
+
+      const summaryProductsList = document.getElementById('summary-products');
+      summaryProductsList.innerHTML = '';
+      products.forEach((product, idx) => {
+        const li = document.createElement('li');
+        li.innerText = `${idx + 1}. ${product.subcategory} (${product.quantity}) - Rp ${product.price.toLocaleString()} on ${product.date}`;
+        summaryProductsList.appendChild(li);
+      });
+
+      document.getElementById('summary-date').innerText = new Date().toLocaleDateString();
+      document.getElementById('summary-invoice').innerText = generateInvoice();
       document.getElementById('summary-total').innerText = totalPrice.toLocaleString();
       document.getElementById('summary-discount').innerText = discount;
       document.getElementById('summary-down-payment').innerText = downPayment.toLocaleString();
       document.getElementById('summary-final').innerText = finalAmount.toLocaleString();
 
-      document.getElementById('invoice').value = invoice;
       document.querySelector('.summary').classList.remove('hidden');
       document.getElementById('export-btn').classList.remove('hidden');
       document.getElementById('whatsapp-btn').classList.remove('hidden');
@@ -217,7 +286,10 @@
         Customer Name: ${document.getElementById('summary-name').innerText}
         Address: ${document.getElementById('summary-address').innerText}
         Phone: ${document.getElementById('summary-phone').innerText}
-        Products: ${document.getElementById('summary-products').innerText}
+        Products:
+        ${Array.from(document.getElementById('summary-products').children)
+          .map(li => li.innerText)
+          .join('\n')}
         Date: ${document.getElementById('summary-date').innerText}
         Invoice: ${document.getElementById('summary-invoice').innerText}
         Total Price: Rp ${document.getElementById('summary-total').innerText}
@@ -239,7 +311,10 @@
         Customer Name: ${document.getElementById('summary-name').innerText}
         Address: ${document.getElementById('summary-address').innerText}
         Phone: ${document.getElementById('summary-phone').innerText}
-        Products: ${document.getElementById('summary-products').innerText}
+        Products:
+        ${Array.from(document.getElementById('summary-products').children)
+          .map(li => li.innerText)
+          .join('\n')}
         Date: ${document.getElementById('summary-date').innerText}
         Invoice: ${document.getElementById('summary-invoice').innerText}
         Total Price: Rp ${document.getElementById('summary-total').innerText}
