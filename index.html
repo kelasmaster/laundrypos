@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laundry POS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+    h3 {
+      margin-top: 0;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .summary p {
+      margin: 5px 0;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Customer Data Section -->
+    <div class="customer-data">
+      <h3>Customer Information</h3>
+      <label for="name">Name:</label>
+      <input type="text" id="name" placeholder="Enter customer name" required>
+
+      <label for="address">Address:</label>
+      <textarea id="address" placeholder="Enter customer address" rows="3"></textarea>
+
+      <label for="phone">Phone Number:</label>
+      <input type="tel" id="phone" placeholder="Enter phone number" required>
+    </div>
+
+    <!-- Product Selection Section -->
+    <div class="product-selection">
+      <h3>Select Product</h3>
+      <label for="category">Category:</label>
+      <select id="category" onchange="handleCategoryChange()">
+        <option value="">--Select Category--</option>
+        <option value="kiloan">Laundry Kiloan</option>
+        <option value="satuan">Laundry Satuan</option>
+      </select>
+
+      <div id="subcategories" class="hidden">
+        <!-- Subcategories will be dynamically populated here -->
+      </div>
+
+      <label for="quantity">Quantity:</label>
+      <input type="number" id="quantity" min="1" value="1">
+
+      <label for="date">Date:</label>
+      <input type="date" id="date">
+
+      <label for="invoice">Invoice Number:</label>
+      <input type="text" id="invoice" readonly>
+    </div>
+
+    <!-- Discount and Down Payment Section -->
+    <div class="discount-payment">
+      <h3>Discount & Down Payment</h3>
+      <label for="discount">Discount (%):</label>
+      <input type="number" id="discount" min="0" max="100" value="0">
+
+      <label for="down-payment">Down Payment (Rp):</label>
+      <input type="number" id="down-payment" min="0" value="0">
+    </div>
+
+    <!-- Summary Section -->
+    <div class="summary hidden">
+      <h3>Transaction Summary</h3>
+      <p><strong>Customer Name:</strong> <span id="summary-name"></span></p>
+      <p><strong>Address:</strong> <span id="summary-address"></span></p>
+      <p><strong>Phone:</strong> <span id="summary-phone"></span></p>
+      <p><strong>Products:</strong> <span id="summary-products"></span></p>
+      <p><strong>Date:</strong> <span id="summary-date"></span></p>
+      <p><strong>Invoice:</strong> <span id="summary-invoice"></span></p>
+      <p><strong>Total Price:</strong> Rp <span id="summary-total"></span></p>
+      <p><strong>Discount:</strong> <span id="summary-discount"></span>%</p>
+      <p><strong>Down Payment:</strong> Rp <span id="summary-down-payment"></span></p>
+      <p><strong>Final Amount:</strong> Rp <span id="summary-final"></span></p>
+    </div>
+
+    <!-- Action Buttons -->
+    <button onclick="calculateSummary()">Calculate Summary</button>
+    <button onclick="exportToTxt()" class="hidden" id="export-btn">Export to TXT</button>
+    <button onclick="sendToWhatsApp()" class="hidden" id="whatsapp-btn">Send to WhatsApp</button>
+  </div>
+
+  <script>
+    function handleCategoryChange() {
+      const category = document.getElementById('category').value;
+      const subcategoriesDiv = document.getElementById('subcategories');
+      subcategoriesDiv.innerHTML = '';
+      subcategoriesDiv.classList.remove('hidden');
+
+      if (category === 'kiloan') {
+        subcategoriesDiv.innerHTML = `
+          <label for="subcategory">Subcategory:</label>
+          <select id="subcategory">
+            <option value="reguler">Laundry Reguler (Rp 7,000/kg)</option>
+            <option value="ekspres">Laundry Ekspres (Rp 10,000/kg)</option>
+            <option value="kilat">Laundry Kilat (Rp 12,000/kg)</option>
+          </select>
+        `;
+      } else if (category === 'satuan') {
+        subcategoriesDiv.innerHTML = `
+          <label for="subcategory">Subcategory:</label>
+          <select id="subcategory">
+            <option value="karpet">Laundry Karpet</option>
+            <option value="bedcover">Laundry Bedcover</option>
+            <option value="boneka">Laundry Boneka</option>
+            <option value="dasi">Dasi (Rp 8,000)</option>
+            <option value="kemeja">Kemeja (Rp 14,500)</option>
+            <option value="handuk">Handuk (Rp 10,000)</option>
+            <option value="bantal">Bantal (Rp 25,000)</option>
+          </select>
+        `;
+      }
+    }
+
+    function calculateSummary() {
+      const name = document.getElementById('name').value;
+      const address = document.getElementById('address').value;
+      const phone = document.getElementById('phone').value;
+      const category = document.getElementById('category').value;
+      const subcategory = document.getElementById('subcategory')?.value;
+      const quantity = parseFloat(document.getElementById('quantity').value);
+      const date = document.getElementById('date').value;
+      const invoice = generateInvoice();
+      const discount = parseFloat(document.getElementById('discount').value);
+      const downPayment = parseFloat(document.getElementById('down-payment').value);
+
+      let price = 0;
+      if (category === 'kiloan') {
+        switch (subcategory) {
+          case 'reguler': price = 7000; break;
+          case 'ekspres': price = 10000; break;
+          case 'kilat': price = 12000; break;
+        }
+      } else if (category === 'satuan') {
+        switch (subcategory) {
+          case 'karpet': price = 15000; break; // Default price for medium karpet
+          case 'bedcover': price = 30000; break; // Default price for medium bedcover
+          case 'boneka': price = 10000; break; // Default price for small boneka
+          case 'dasi': price = 8000; break;
+          case 'kemeja': price = 14500; break;
+          case 'handuk': price = 10000; break;
+          case 'bantal': price = 25000; break;
+        }
+      }
+
+      const totalPrice = price * quantity;
+      const discountedPrice = totalPrice - (totalPrice * (discount / 100));
+      const finalAmount = discountedPrice - downPayment;
+
+      document.getElementById('summary-name').innerText = name;
+      document.getElementById('summary-address').innerText = address;
+      document.getElementById('summary-phone').innerText = phone;
+      document.getElementById('summary-products').innerText = `${subcategory} (${quantity})`;
+      document.getElementById('summary-date').innerText = date;
+      document.getElementById('summary-invoice').innerText = invoice;
+      document.getElementById('summary-total').innerText = totalPrice.toLocaleString();
+      document.getElementById('summary-discount').innerText = discount;
+      document.getElementById('summary-down-payment').innerText = downPayment.toLocaleString();
+      document.getElementById('summary-final').innerText = finalAmount.toLocaleString();
+
+      document.getElementById('invoice').value = invoice;
+      document.querySelector('.summary').classList.remove('hidden');
+      document.getElementById('export-btn').classList.remove('hidden');
+      document.getElementById('whatsapp-btn').classList.remove('hidden');
+    }
+
+    function generateInvoice() {
+      return `INV-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    function exportToTxt() {
+      const summaryText = `
+        Customer Name: ${document.getElementById('summary-name').innerText}
+        Address: ${document.getElementById('summary-address').innerText}
+        Phone: ${document.getElementById('summary-phone').innerText}
+        Products: ${document.getElementById('summary-products').innerText}
+        Date: ${document.getElementById('summary-date').innerText}
+        Invoice: ${document.getElementById('summary-invoice').innerText}
+        Total Price: Rp ${document.getElementById('summary-total').innerText}
+        Discount: ${document.getElementById('summary-discount').innerText}%
+        Down Payment: Rp ${document.getElementById('summary-down-payment').innerText}
+        Final Amount: Rp ${document.getElementById('summary-final').innerText}
+      `;
+
+      const blob = new Blob([summaryText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'transaction_summary.txt';
+      a.click();
+    }
+
+    function sendToWhatsApp() {
+      const summaryText = `
+        Customer Name: ${document.getElementById('summary-name').innerText}
+        Address: ${document.getElementById('summary-address').innerText}
+        Phone: ${document.getElementById('summary-phone').innerText}
+        Products: ${document.getElementById('summary-products').innerText}
+        Date: ${document.getElementById('summary-date').innerText}
+        Invoice: ${document.getElementById('summary-invoice').innerText}
+        Total Price: Rp ${document.getElementById('summary-total').innerText}
+        Discount: ${document.getElementById('summary-discount').innerText}%
+        Down Payment: Rp ${document.getElementById('summary-down-payment').innerText}
+        Final Amount: Rp ${document.getElementById('summary-final').innerText}
+      `;
+
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(summaryText)}`;
+      window.open(whatsappUrl, '_blank');
+    }
+  </script>
+</body>
+</html>
