@@ -347,7 +347,7 @@
         Jumlah Akhir: Rp ${document.getElementById('summary-final').innerText}
       `;
 
-      const whatsappUrl = `https://wa.me/$(phone)?text=${encodeURIComponent(summaryText)}`;
+      const whatsappUrl = `https://wa.me/$phone?text=${encodeURIComponent(summaryText)}`;
       window.open(whatsappUrl, '_blank');
     }
   </script>
