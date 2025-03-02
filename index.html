@@ -329,10 +329,12 @@
     }
 
     function exportToTxt() {
-      const summaryText = `BANDAR LAUNDRY\nJl. Pejagalan Kulon No. 50, Sokaraja Banyumas
-        www.bandarlaundry.com 
-	Whatsapp: 085773009666
-	=========================\n
+      const summaryText = `BANDAR LAUNDRY
+Jl. Pejagalan Kulon No. 50 
+Sokaraja Banyumas
+www.bandarlaundry.com 
+Whatsapp: 085773009666
+=========================\n
 	Nama: ${document.getElementById('summary-name').innerText}
         Alamat: ${document.getElementById('summary-address').innerText}
         Telepon: ${document.getElementById('summary-phone').innerText}
@@ -359,10 +361,12 @@
 
     function sendToWhatsApp() {
       const summaryText = `
-        *BANDAR LAUNDRY*\nJl. Pejagalan Kulon No. 50, Sokaraja Banyumas
-	www.bandarlaundry.com 
-        Whatsapp: 085773009666
-	=========================\n
+*BANDAR LAUNDRY*
+Jl. Pejagalan Kulon No. 50
+Sokaraja Banyumas
+www.bandarlaundry.com\n
+Whatsapp: 085773009666   
+========================\n
 	Nama: ${document.getElementById('summary-name').innerText}
         Alamat: ${document.getElementById('summary-address').innerText}
         Telepon: ${document.getElementById('summary-phone').innerText}
@@ -376,7 +380,7 @@
         Discount: ${document.getElementById('summary-discount').innerText}%
         Down Payment: Rp ${document.getElementById('summary-down-payment').innerText}
         Jumlah Akhir: Rp ${document.getElementById('summary-final').innerText}\n
-	_Terimakasih sudah menggunakan jasa laundry kami_.
+_Terimakasih sudah menggunakan jasa laundry kami_.
       `;
 
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(summaryText)}`;
