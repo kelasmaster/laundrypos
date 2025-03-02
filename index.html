@@ -285,7 +285,7 @@
       summaryProductsList.innerHTML = '';
       products.forEach((product, idx) => {
         const li = document.createElement('li');
-        li.innerText = `${idx + 1}. ${product.subcategory} (${product.quantity}) - Rp ${product.price.toLocaleString()} on ${product.date}`;
+        li.innerText = `${idx + 1}. ${product.subcategory} (${product.quantity}) - Rp ${product.price.toLocaleString()}`;
         summaryProductsList.appendChild(li);
       });
 
@@ -307,32 +307,7 @@
 
     function exportToTxt() {
       const summaryText = `
-        Nama Pelanggan: ${document.getElementById('summary-name').innerText}
-        Alamat: ${document.getElementById('summary-address').innerText}
-        Telepon: ${document.getElementById('summary-phone').innerText}
-        Produk:
-        ${Array.from(document.getElementById('summary-products').children)
-          .map(li => li.innerText)
-          .join('\n')}
-        Tanggal: ${document.getElementById('summary-date').innerText}
-        Invoice: ${document.getElementById('summary-invoice').innerText}
-        Total Harga: Rp ${document.getElementById('summary-total').innerText}
-        Discount: ${document.getElementById('summary-discount').innerText}%
-        Down Payment: Rp ${document.getElementById('summary-down-payment').innerText}
-        Jumlah Akhir: Rp ${document.getElementById('summary-final').innerText}
-      `;
-
-      const blob = new Blob([summaryText], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'bandarlaundry.txt';
-      a.click();
-    }
-
-    function sendToWhatsApp() {
-      const summaryText = `
-        Nama Pelanggan: ${document.getElementById('summary-name').innerText}
+        Nama: ${document.getElementById('summary-name').innerText}
         Alamat: ${document.getElementById('summary-address').innerText}
         Telepon: ${document.getElementById('summary-phone').innerText}
         Produk:
@@ -345,7 +320,35 @@
         Discount: ${document.getElementById('summary-discount').innerText}%
         Down Payment: Rp ${document.getElementById('summary-down-payment').innerText}
         Jumlah Akhir: Rp ${document.getElementById('summary-final').innerText}\n
-	Terimakasih sudah menggunakan jasa laundry kami
+	Terimakasih sudah menggunakan jasa laundry kami.
+      `;
+
+      const blob = new Blob([summaryText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bandarlaundry.txt';
+      a.click();
+    }
+
+    function sendToWhatsApp() {
+      const summaryText = `
+        *BANDAR lAUNDRY*\nJl. Pejagalan Kulon No. 50, Sokaraja Banyumas\n
+	=================================\n\n
+	Nama: ${document.getElementById('summary-name').innerText}
+        Alamat: ${document.getElementById('summary-address').innerText}
+        Telepon: ${document.getElementById('summary-phone').innerText}
+        Produk:
+        ${Array.from(document.getElementById('summary-products').children)
+          .map(li => li.innerText)
+          .join('\n')}
+        Tanggal: ${document.getElementById('summary-date').innerText}
+        Invoice: ${document.getElementById('summary-invoice').innerText}
+        Total Harga: Rp ${document.getElementById('summary-total').innerText}
+        Discount: ${document.getElementById('summary-discount').innerText}%
+        Down Payment: Rp ${document.getElementById('summary-down-payment').innerText}
+        Jumlah Akhir: Rp ${document.getElementById('summary-final').innerText}\n
+	_Terimakasih sudah menggunakan jasa laundry kami_.
       `;
 
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(summaryText)}`;
