@@ -90,7 +90,7 @@
       <label for="address">Alamat:</label>
       <textarea id="address" placeholder="Tulis alamat lengkap" rows="3"></textarea>
 
-      <label for="phone">Whatsapp:</label>
+      <label for="phone">Telepon:</label>
       <input type="tel" id="phone" placeholder="Tulis nomor Whatsapp" required>
     </div>
 
@@ -344,10 +344,11 @@
         Total Harga: Rp ${document.getElementById('summary-total').innerText}
         Discount: ${document.getElementById('summary-discount').innerText}%
         Down Payment: Rp ${document.getElementById('summary-down-payment').innerText}
-        Jumlah Akhir: Rp ${document.getElementById('summary-final').innerText}
+        Jumlah Akhir: Rp ${document.getElementById('summary-final').innerText}\n
+	Terimakasih sudah menggunakan jasa laundry kami
       `;
 
-      const whatsappUrl = `https://wa.me/$(phone}?text=${encodeURIComponent(summaryText)}`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(summaryText)}`;
       window.open(whatsappUrl, '_blank');
     }
   </script>
